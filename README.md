@@ -10,6 +10,8 @@ The extension provides the following features:
 - Prompts the user to run "git add --all" before generating the commit message
 - Saves the generated commit message to a file in the workspace
 
+To run it, open the command pallete and type in: gernerateCommit
+
 ## Requirements
 
 To use the "gpt-commit-generator" extension, you need to have the following dependencies installed:
