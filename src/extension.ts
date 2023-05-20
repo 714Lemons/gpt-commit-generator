@@ -1,5 +1,6 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
+
 import * as vscode from 'vscode';
 import * as path from 'path';
 
@@ -31,13 +32,19 @@ function generateDiff(folderPath: string) {
         if (changes.trim().length === 0) {
             vscode.window.showInformationMessage('No changes to commit.');
         } else {
-            interpretChanges(changes);
+			vscode.window.withProgress({
+                location: vscode.ProgressLocation.Notification,
+                title: 'Generating commit message...',
+                cancellable: false
+            }, (progress) => {
+                return interpretChanges(changes, 1, progress);
+            });
         }
     });
 }
 
 
-async function interpretChanges(changes: string, attempt: number = 1) {
+async function interpretChanges(changes: string, attempt: number = 1, progress: vscode.Progress<{ message?: string }>) {
     try {
 		const { organization, apiKey } = await getOpenAIConfiguration();
 
@@ -55,8 +62,10 @@ async function interpretChanges(changes: string, attempt: number = 1) {
                     role: 'user',
                     content: 
 						`The following changes are tracked by git.
-						Create a commit message with the most important bullet points.
-						start every bullet point with a dash and find a good title for the commit with words like UPDATE, ADDED, FIXED or REMOVED.
+						Create a commit message with the most important bullet points and a short Title with words like UPDATED, ADDED, FIXED or REMOVED.
+						After the title, add a blank line and then the bullet points.
+						The bullet points should describe the changes in more detail but not longer than needed.
+						Changes:
 						\n${changes}`
                 }
             ]
@@ -103,7 +112,7 @@ async function interpretChanges(changes: string, attempt: number = 1) {
             // Implement exponential backoff
             const delay = Math.pow(2, attempt) * 1000; // Delay in milliseconds
             console.log(`Rate limit hit, retrying in ${delay / 1000}s...`);
-            setTimeout(() => interpretChanges(changes, attempt + 1), delay);
+            setTimeout(() => interpretChanges(changes, attempt + 1, progress), delay);
         } else {
             console.error(error);
         }
@@ -136,6 +145,22 @@ async function getOpenAIConfiguration() {
 		throw new Error('Missing OpenAI organization or API key');
 	  }
 	}
+  }
+
+  let statusBarItem: vscode.StatusBarItem | undefined;
+
+  function showLoadingIndicator() {
+	  if (!statusBarItem) {
+		  statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
+		  statusBarItem.text = "$(sync~spin) Generating commit message...";
+	  }
+	  statusBarItem.show();
+  }
+  
+  function hideLoadingIndicator() {
+	  if (statusBarItem) {
+		  statusBarItem.hide();
+	  }
   }
 
 
