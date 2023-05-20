@@ -13,19 +13,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	let disposable = vscode.commands.registerCommand('gpt-commit-generator.generateCommit', () => {
 		vscode.workspace.workspaceFolders?.forEach((folder) => {
-            vscode.window.showInformationMessage('Do you want to run "git add --all"?', { modal: true }, 'Yes', 'No').then((result) => {
-                if (result === 'Yes') {
-                    child_process.exec('git add --all', { cwd: folder.uri.fsPath }, (error) => {
-                        if (error) {
-                            console.error(`exec error: ${error}`);
-                            return;
-                        }
-                        generateDiff(folder.uri.fsPath);
-                    });
-                } else {
-                    generateDiff(folder.uri.fsPath);
-                }
-            });
+			generateDiff(folder.uri.fsPath);
         });
     });
 
@@ -74,23 +62,38 @@ async function interpretChanges(changes: string, attempt: number = 1) {
             const interpretation = response.data.choices[0].message.content;
             console.log(`Interpretation of changes:\n${interpretation}`);
 
-            // Check if a workspace is open
             if (vscode.workspace.workspaceFolders) {
-                const workspaceFolderPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
-                const filePath = path.join(workspaceFolderPath, 'commit.txt');
-                fs.writeFile(filePath, interpretation, (error) => {
-                    if (error) {
-                        console.error(`Write file error: ${error}`);
-                        return;
-                    }
-                    console.log(`Interpretation saved to ${filePath}`);
-                });
-            } else {
-                console.error('No workspace open');
-            }
-        } else {
-            console.error('Invalid response from OpenAI API');
-        }
+				try {
+					const gitExtension = vscode.extensions.getExtension('vscode.git')?.exports;
+					if (!gitExtension) {
+						console.error('Git extension is not available.');
+						return;
+					}
+			
+					const repository = gitExtension.getAPI(1).repositories[0];
+					const currentBranch = repository.state.HEAD?.name;
+			
+					if (!currentBranch) {
+						console.error('No branch is currently checked out.');
+						return;
+					}
+			
+					const commitMessage = `Auto-generated commit (${currentBranch})\n\n${interpretation}`;
+					repository.inputBox.value = commitMessage;
+			
+					// Optional: Automatically stage all changes before committing
+					//await commands.executeCommand('git.stageAll');
+			
+					// Optional: Show the Git commit view
+					//await commands.executeCommand('git.commit');
+				} catch (error) {
+					console.error('Failed to write commit message to Git extension:', error);
+				}
+			} else {
+				console.error('No workspace open');
+			}
+		}
+	
     } catch (error: any) {
         if (error.response && error.response.status === 429) {
             // Implement exponential backoff
