@@ -7,7 +7,8 @@
   "publisher": "KarlMoritzWildenhain",
   "displayName": "GPT Commit Generator",
   "description": "GPT Commit Generator is a VS Code extension that detects uncommitted changes and generates commit messages using the GPT language model. It saves developers time by automating the process of creating informative commit messages.",
-  "version": "0.0.5",
+  "version": "0.0.7",
+  "icon": "images/Icon.png",
   "engines": {
     "vscode": "^1.78.0"
   },
