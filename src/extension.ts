@@ -25,6 +25,7 @@ function generateDiff(folderPath: string) {
     child_process.exec('git diff --cached', { cwd: folderPath }, (error, stdout, stderr) => {
         if (error) {
             console.error(`exec error: ${error}`);
+			vscode.window.showErrorMessage(`Error generating diff: ${error}`);
             return;
         }
         const changes = stdout;
@@ -80,6 +81,7 @@ async function interpretChanges(changes: string, attempt: number = 1, progress: 
 					const gitExtension = vscode.extensions.getExtension('vscode.git')?.exports;
 					if (!gitExtension) {
 						console.error('Git extension is not available.');
+						vscode.window.showErrorMessage(`Git extension is not available.`);
 						return;
 					}
 			
@@ -115,6 +117,7 @@ async function interpretChanges(changes: string, attempt: number = 1, progress: 
             setTimeout(() => interpretChanges(changes, attempt + 1, progress), delay);
         } else {
             console.error(error);
+			vscode.window.showErrorMessage(`Error interpreting changes: ${error.message}`);
         }
     }
 }
@@ -146,23 +149,6 @@ async function getOpenAIConfiguration() {
 	  }
 	}
   }
-
-  let statusBarItem: vscode.StatusBarItem | undefined;
-
-  function showLoadingIndicator() {
-	  if (!statusBarItem) {
-		  statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
-		  statusBarItem.text = "$(sync~spin) Generating commit message...";
-	  }
-	  statusBarItem.show();
-  }
-  
-  function hideLoadingIndicator() {
-	  if (statusBarItem) {
-		  statusBarItem.hide();
-	  }
-  }
-
 
 // This method is called when your extension is deactivated
 export function deactivate() {}
