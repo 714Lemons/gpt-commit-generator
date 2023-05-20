@@ -64,7 +64,7 @@ async function interpretChanges(changes: string, attempt: number = 1) {
                     content: 
 						`The following changes are tracked by git.
 						Create a commit message with the most important bullet points.
-						start every bullet point with a dash
+						start every bullet point with a dash and find a good title for the commit with words like UPDATE, ADDED, FIXED or REMOVED.
 						\n${changes}`
                 }
             ]

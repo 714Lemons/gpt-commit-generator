@@ -1,5 +1,10 @@
 {
   "name": "gpt-commit-generator",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/714Lemons/gpt-commit-generator"
+  },
+  "publisher": "KarlMoritzWildenhain",
   "displayName": "GPT-Commit-Generator",
   "description": "GPT-Commit-Generator is a VS Code extension that detects uncommitted changes and generates commit messages using the GPT language model. It saves developers time by automating the process of creating informative commit messages.",
   "version": "0.0.1",
@@ -14,8 +19,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "gpt-commit-generator.helloWorld",
-        "title": "Hello World"
+        "command": "gpt-commit-generator.generateCommit",
+        "title": "Generate Commit"
       }
     ],
     "configuration": {
