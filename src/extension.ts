@@ -26,9 +26,13 @@ function generateDiff(folderPath: string) {
             console.error(`exec error: ${error}`);
             return;
         }
-		const changes = stdout;
+        const changes = stdout;
         console.log(`Changes since last commit:\n${changes}`);
-		interpretChanges(changes);
+        if (changes.trim().length === 0) {
+            vscode.window.showInformationMessage('No changes to commit.');
+        } else {
+            interpretChanges(changes);
+        }
     });
 }
 
