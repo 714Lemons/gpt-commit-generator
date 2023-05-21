@@ -22,6 +22,7 @@ The "gpt-commit-generator" extension contributes the following settings:
 
 - gpt-commit-generator.organization: The OpenAI organization ID.
 - gpt-commit-generator.apiKey: The OpenAI API key.
+- gpt-commit-generator.text: Prompt text that defines how the commit message should look like. Change it based on your liking or guidelines.
 
 If these settings are not configured, the extension prompts you to enter the organization ID and API key.
 
