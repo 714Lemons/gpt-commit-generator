@@ -5,7 +5,7 @@ The "gpt-commit-generator" extension allows you to generate commit messages base
 ## Features
 
 - Generates commit messages based on tracked changes
-- Wirtes it directly into the git extension commit field
+- Writes it directly into the git extension commit field
 - Make sure all files you want to commit are tracked by git
 - To add all type ```git add --all``` into the terminal
 
