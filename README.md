@@ -13,6 +13,7 @@ To run it, open the command pallete and type in: ```Gernerate Commit```
 
 ## Requirements
 
+- OpenAI API Key
 - Git: Make sure Git is installed and available in your system's PATH.
 
 ## Extension Settings
