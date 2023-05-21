@@ -2,6 +2,8 @@
 
 The "gpt-commit-generator" extension allows you to generate commit messages based on the changes tracked by Git.
 
+![Alt Text](/images/usage.gif)
+
 ## Features
 
 - Generates commit messages based on tracked changes
