@@ -6,8 +6,10 @@ The "gpt-commit-generator" extension allows you to generate commit messages base
 
 - Generates commit messages based on tracked changes
 - Wirtes it directly into the git extension commit field
+- Make sure all files you want to commit are tracked by git
+- To add all type ```git add --all``` into the terminal
 
-To run it, open the command pallete and type in: Gernerate Commit
+To run it, open the command pallete and type in: ```Gernerate Commit```
 
 ## Requirements
 
@@ -19,7 +21,7 @@ The "gpt-commit-generator" extension contributes the following settings:
 
 - gpt-commit-generator.organization: The OpenAI organization ID.
 - gpt-commit-generator.apiKey: The OpenAI API key.
-- 
+
 If these settings are not configured, the extension prompts you to enter the organization ID and API key.
 
-Logo from "https://www.freepik.com/free-vector/hexagon-vector-logos-outline-linear-style-logo-hexagon-abstract-hexagon-geometric-logo-hexagon-illustration_11059555.htm#query=geometric%20logo&position=4&from_view=keyword&track=ais" on Freepik
+Icon: from "https://www.freepik.com/free-vector/hexagon-vector-logos-outline-linear-style-logo-hexagon-abstract-hexagon-geometric-logo-hexagon-illustration_11059555.htm#query=geometric%20logo&position=4&from_view=keyword&track=ais" on Freepik
