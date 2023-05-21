@@ -7,7 +7,7 @@
   "publisher": "KarlMoritzWildenhain",
   "displayName": "GPT Commit Generator",
   "description": "Generates commit messages based on uncommited changes. Saves developers time by creating informative commit messages.",
-  "version": "0.0.12",
+  "version": "0.0.14",
   "icon": "images/Icon.png",
   "engines": {
     "vscode": "^1.78.0"
@@ -26,11 +26,6 @@
     ],
     "configuration": {
       "properties": {
-        "gpt-commit-generator.organization": {
-          "type": "string",
-          "default": "",
-          "description": "The organization ID for OpenAI"
-        },
         "gpt-commit-generator.apiKey": {
           "type": "string",
           "default": "",
@@ -39,7 +34,7 @@
         "gpt-commit-generator.text": {
           "type": "string",
           "default": "The following changes are tracked by git. Create a commit message with the most important bullet points and a short Title with words like UPDATED, ADDED, FIXED or REMOVED. After the title, add a blank line and then the bullet points. The bullet points should describe the changes in more detail but not longer than needed. Changes:",
-          "description": "The fixed text sent to the GPT model (excluding changes)"
+          "description": "The prompt text send to the GPT model (excluding changes) describing the commit message format."
         }
       }
     }

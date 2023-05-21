@@ -47,10 +47,9 @@ function generateDiff(folderPath: string) {
 
 async function interpretChanges(changes: string, attempt: number = 1, progress: vscode.Progress<{ message?: string }>) {
     try {
-		const { organization, apiKey, text } = await getOpenAIConfiguration();
+		const { apiKey, text } = await getOpenAIConfiguration();
 
 		const configuration = new Configuration({
-			organization,
 			apiKey
 		});
 
@@ -122,31 +121,25 @@ async function interpretChanges(changes: string, attempt: number = 1, progress: 
 
 async function getOpenAIConfiguration() {
 	const config = vscode.workspace.getConfiguration('gpt-commit-generator', vscode.window.activeTextEditor?.document.uri);
-	const organization = config.get<string>('organization');
 	const apiKey = config.get<string>('apiKey');
 	const text = config.get<string>('text');
 
 	await config.update('text', text, vscode.ConfigurationTarget.Global);
   
-	if (organization && apiKey && text) {
-	  return { organization, apiKey, text };
+	if (apiKey && text) {
+	  return { apiKey, text };
 	} else {
-	  const newOrganization = await vscode.window.showInputBox({
-		prompt: 'Enter your OpenAI organization ID',
-		ignoreFocusOut: true, // Keep input box open even when focus is lost
-	  });
 	  const newApiKey = await vscode.window.showInputBox({
 		prompt: 'Enter your OpenAI API key',
 		ignoreFocusOut: true, // Keep input box open even when focus is lost
 	  });
   
-	  if (newOrganization && newApiKey) {
-		await config.update('organization', newOrganization, vscode.ConfigurationTarget.Global);
+	  if (newApiKey) {
 		await config.update('apiKey', newApiKey, vscode.ConfigurationTarget.Global);
   
-		return { organization: newOrganization, apiKey: newApiKey, text: text };
+		return { apiKey: newApiKey, text: text };
 	  } else {
-		throw new Error('Missing OpenAI organization or API key');
+		throw new Error('Missing OpenAI API key');
 	  }
 	}
   }
