@@ -47,7 +47,7 @@ function generateDiff(folderPath: string) {
 
 async function interpretChanges(changes: string, attempt: number = 1, progress: vscode.Progress<{ message?: string }>) {
     try {
-		const { organization, apiKey } = await getOpenAIConfiguration();
+		const { organization, apiKey, text } = await getOpenAIConfiguration();
 
 		const configuration = new Configuration({
 			organization,
@@ -56,17 +56,15 @@ async function interpretChanges(changes: string, attempt: number = 1, progress: 
 
 		const openai = new OpenAIApi(configuration);
 
+		console.log(text);
+
         const response = await openai.createChatCompletion({
             model: 'gpt-3.5-turbo',
             messages: [
                 {
                     role: 'user',
                     content: 
-						`The following changes are tracked by git.
-						Create a commit message with the most important bullet points and a short Title with words like UPDATED, ADDED, FIXED or REMOVED.
-						After the title, add a blank line and then the bullet points.
-						The bullet points should describe the changes in more detail but not longer than needed.
-						Changes:
+						`${text}
 						\n${changes}`
                 }
             ]
@@ -126,9 +124,12 @@ async function getOpenAIConfiguration() {
 	const config = vscode.workspace.getConfiguration('gpt-commit-generator', vscode.window.activeTextEditor?.document.uri);
 	const organization = config.get<string>('organization');
 	const apiKey = config.get<string>('apiKey');
+	const text = config.get<string>('text');
+
+	await config.update('text', text, vscode.ConfigurationTarget.Global);
   
-	if (organization && apiKey) {
-	  return { organization, apiKey };
+	if (organization && apiKey && text) {
+	  return { organization, apiKey, text };
 	} else {
 	  const newOrganization = await vscode.window.showInputBox({
 		prompt: 'Enter your OpenAI organization ID',
@@ -143,7 +144,7 @@ async function getOpenAIConfiguration() {
 		await config.update('organization', newOrganization, vscode.ConfigurationTarget.Global);
 		await config.update('apiKey', newApiKey, vscode.ConfigurationTarget.Global);
   
-		return { organization: newOrganization, apiKey: newApiKey };
+		return { organization: newOrganization, apiKey: newApiKey, text: text };
 	  } else {
 		throw new Error('Missing OpenAI organization or API key');
 	  }

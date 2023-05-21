@@ -6,8 +6,8 @@
   },
   "publisher": "KarlMoritzWildenhain",
   "displayName": "GPT Commit Generator",
-  "description": "GPT Commit Generator is a VS Code extension that detects uncommitted changes and generates commit messages using the GPT language model. It saves developers time by automating the process of creating informative commit messages.",
-  "version": "0.0.7",
+  "description": "Generates commit messages based on uncommited changes. Saves developers time by creating informative commit messages.",
+  "version": "0.0.11",
   "icon": "images/Icon.png",
   "engines": {
     "vscode": "^1.78.0"
@@ -35,6 +35,11 @@
           "type": "string",
           "default": "",
           "description": "The API key for OpenAI"
+        },
+        "gpt-commit-generator.text": {
+          "type": "string",
+          "default": "The following changes are tracked by git. Create a commit message with the most important bullet points and a short Title with words like UPDATED, ADDED, FIXED or REMOVED. After the title, add a blank line and then the bullet points. The bullet points should describe the changes in more detail but not longer than needed. Changes:",
+          "description": "The fixed text sent to the GPT model (excluding changes)"
         }
       }
     }
