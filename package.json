@@ -7,12 +7,17 @@
   "publisher": "KarlMoritzWildenhain",
   "displayName": "GPT Commit Generator",
   "description": "Generates commit messages based on uncommitted changes. Saves developers time by creating informative commit messages.",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "icon": "images/Icon.png",
   "engines": {
     "vscode": "^1.78.0"
   },
-  "categories": ["Other"],
+  "categories": [
+    "Extension Packs",
+    "Machine Learning",
+    "Formatters",
+    "SCM Providers"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
