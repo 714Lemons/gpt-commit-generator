@@ -1,6 +1,7 @@
 # GPT Commit Generator
 
 The "gpt-commit-generator" extension allows you to generate commit messages based on the changes tracked by Git.
+Also lets you setup your own prompt to customize the commit message.
 
 ![Alt Text](/images/usage.gif)
 
@@ -10,7 +11,7 @@ The "gpt-commit-generator" extension allows you to generate commit messages base
 - Writes it directly into the git extension commit field
 - Make sure all files you want to commit are tracked by git
 
-To run it, click the Generate Commit butoon in the source control panel or open the command palette and type in: ```Gernerate Commit```.
+To run it, click the Generate Commit button in the source control panel or open the command palette and type in: ```Gernerate Commit```.
 
 ## Requirements
 
