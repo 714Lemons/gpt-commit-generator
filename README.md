@@ -5,6 +5,8 @@ Also lets you setup your own prompt to customize the commit message.
 
 ![Alt Text](/images/usage.gif)
 
+![Alt Text](/images/prompt.gif)
+
 ## Features
 
 - Generates commit messages based on tracked changes

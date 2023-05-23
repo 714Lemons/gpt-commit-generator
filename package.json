@@ -7,7 +7,7 @@
   "publisher": "KarlMoritzWildenhain",
   "displayName": "GPT Commit Generator",
   "description": "Generates commit messages based on uncommitted changes. Saves developers time by creating informative commit messages.",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "icon": "images/Icon.png",
   "engines": {
     "vscode": "^1.78.0"
