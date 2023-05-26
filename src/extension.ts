@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 
 import * as child_process from 'child_process';
 import { Configuration, OpenAIApi } from "openai";
-import { Stream } from 'stream';
 import { IncomingMessage } from 'http';
 
 const maxTokens = 4000;

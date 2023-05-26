@@ -29,4 +29,4 @@ The "gpt-commit-generator" extension contributes the following settings:
 
 If the API key is not set, the extension will ask you to enter it.
 
-Icon: from "https://www.freepik.com/free-vector/hexagon-vector-logos-outline-linear-style-logo-hexagon-abstract-hexagon-geometric-logo-hexagon-illustration_11059555.htm#query=geometric%20logo&position=4&from_view=keyword&track=ais" on Freepik
+<a href="https://www.flaticon.com/de/kostenlose-icons/begehen" title="begehen Icons">Begehen Icons erstellt von Freepik - Flaticon</a>
