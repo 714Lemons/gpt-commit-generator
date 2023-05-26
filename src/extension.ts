@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 
 import * as child_process from 'child_process';
 import { Configuration, OpenAIApi } from "openai";
+import { Stream } from 'stream';
+import { IncomingMessage } from 'http';
 
 const maxTokens = 4000;
 
@@ -71,42 +73,55 @@ async function interpretChanges(changes: string, attempt: number = 1, progress: 
 						`${text}
 						\n${changes}`
 				}
-			]
-		});
+			],
+			stream: true
+		}, {responseType: 'stream'});
 
-		if (response.data.choices && response.data.choices.length > 0 && response.data.choices[0].message && response.data.choices[0].message.content) {
-			const interpretation = response.data.choices[0].message.content;
-			console.log(`Interpretation of changes:\n${interpretation}`);
+		const stream = response.data as unknown as IncomingMessage;
 
-			if (vscode.workspace.workspaceFolders) {
-				try {
-					const gitExtension = vscode.extensions.getExtension('vscode.git')?.exports;
-					if (!gitExtension) {
-						console.error('Git extension is not available.');
-						vscode.window.showErrorMessage(`Git extension is not available.`);
-						return;
-					}
-
-					const repository = gitExtension.getAPI(1).repositories[0];
-					const currentBranch = repository.state.HEAD?.name;
-
-					if (!currentBranch) {
-						console.error('No branch is currently checked out.');
-						return;
-					}
-
-					const commitMessage = `${interpretation}`;
-					repository.inputBox.value = commitMessage;
-
-					vscode.window.showInformationMessage('Commit message generated successfully.');
-
-				} catch (error) {
-					console.error('Failed to write commit message to Git extension:', error);
-				}
-			} else {
-				console.error('No workspace open');
-			}
+		const gitExtension = vscode.extensions.getExtension('vscode.git')?.exports;
+		if (!gitExtension) {
+			console.error('Git extension is not available.');
+			vscode.window.showErrorMessage(`Git extension is not available.`);
+			return;
 		}
+
+		const repository = gitExtension.getAPI(1).repositories[0];
+		const commitMessage = ``;
+		repository.inputBox.value = commitMessage;
+
+		stream.on('data', (chunk: Buffer) => {
+            const payloads = chunk.toString().split("\n\n");
+            for (const payload of payloads) {
+                if (payload.includes('[DONE]')) {return;}
+                if (payload.startsWith("data:")) {
+                    const data = JSON.parse(payload.replace("data: ", ""));
+                    try {
+                        const chunk: undefined | string = data.choices[0].delta?.content;
+                        if (chunk) {
+                            console.log(chunk);
+							// append to commit message
+							repository.inputBox.value += chunk;
+                        }
+                    } catch (error) {
+                        console.log(`Error with JSON.parse and ${payload}.\n${error}`);
+                    }
+                }
+            }
+        });
+
+		stream.on('end', () => {
+            setTimeout(() => {
+                console.log('\nStream done');
+				vscode.window.showInformationMessage('Commit message generated successfully.');
+            }, 10);
+        });
+
+        stream.on('error', (err: Error) => {
+            console.log(err);
+			vscode.window.showErrorMessage(`Error interpreting changes: ${err.message}`);
+        });
+
 
 	} catch (error: any) {
 		if (error.response && error.response.status === 429) {
