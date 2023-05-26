@@ -124,14 +124,19 @@ async function interpretChanges(changes: string, attempt: number = 1, progress: 
 
 
 	} catch (error: any) {
-		if (error.response && error.response.status === 429) {
-			// Implement exponential backoff
-			const delay = Math.pow(2, attempt) * 1000; // Delay in milliseconds
-			console.log(`Rate limit hit, retrying in ${delay / 1000}s...`);
-			setTimeout(() => interpretChanges(changes, attempt + 1, progress), delay);
+		if (error.response?.status) {
+			console.error(error.response.status, error.message);
+			error.response.data.on('data', (data: { toString: () => any; }) => {
+				const message = data.toString();
+				try {
+					const parsed = JSON.parse(message);
+					console.error('An error occurred during OpenAI request: ', parsed);
+				} catch(error) {
+					console.error('An error occurred during OpenAI request: ', message);
+				}
+			});
 		} else {
-			console.error(error);
-			vscode.window.showErrorMessage(`Error interpreting changes: ${error.message}`);
+			console.error('An error occurred during OpenAI request', error);
 		}
 	}
 }

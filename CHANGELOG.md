@@ -1,9 +1,6 @@
 # Change Log
 
-All notable changes to the "gpt-commit-generator" extension will be documented in this file.
-
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
-
-## [Unreleased]
-
-- Initial release
+## [1.0.0]
+### Added
+- Now Streams completion into the commit field
+- Detects if changes exceed 4000 tokens
