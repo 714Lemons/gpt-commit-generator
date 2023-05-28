@@ -3,18 +3,36 @@ import * as vscode from 'vscode';
 import * as child_process from 'child_process';
 import { Configuration, OpenAIApi } from "openai";
 import { IncomingMessage } from 'http';
+import path = require('path');
 
 const maxTokens = 4000;
 
-export function activate(context: vscode.ExtensionContext) {
+function activate(context: vscode.ExtensionContext) {
+    let disposable = vscode.commands.registerCommand('gpt-commit-generator.generateCommit', () => {
+        vscode.workspace.workspaceFolders?.forEach((folder) => {
+            generateDiff(folder.uri.fsPath);
+            generateSubmoduleDiffs(folder.uri.fsPath);
+        });
+    });
 
-	let disposable = vscode.commands.registerCommand('gpt-commit-generator.generateCommit', () => {
-		vscode.workspace.workspaceFolders?.forEach((folder) => {
-			generateDiff(folder.uri.fsPath);
-		});
-	});
+    context.subscriptions.push(disposable);
+}
 
-	context.subscriptions.push(disposable);
+function generateSubmoduleDiffs(folderPath: string) {
+    child_process.exec('git config --file .gitmodules --get-regexp path', { cwd: folderPath }, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`exec error: ${error}`);
+            vscode.window.showErrorMessage(`Error getting submodules: ${error}`);
+            return;
+        }
+        
+        const submodules = stdout.split('\n').filter(line => line.includes('.path')).map(line => line.split(' ')[1]);
+
+        for (const submodule of submodules) {
+            const submodulePath = path.join(folderPath, submodule);
+            generateDiff(submodulePath);
+        }
+    });
 }
 
 function generateDiff(folderPath: string) {
