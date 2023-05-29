@@ -7,16 +7,17 @@
   "publisher": "KarlMoritzWildenhain",
   "displayName": "GPT Commit Generator",
   "description": "Generates commit messages based on uncommitted changes.",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "icon": "images/Icon.png",
   "engines": {
     "vscode": "^1.78.0"
   },
   "categories": [
+    "SCM Providers",
     "Machine Learning",
-    "Formatters",
-    "SCM Providers"
+    "Formatters"
   ],
+  "keywords": ["gpt", "commit", "git", "automation", "machine learning", "openai", "ai", "commit messages", "commit message"],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [

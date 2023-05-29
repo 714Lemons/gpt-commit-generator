@@ -2,6 +2,7 @@
 
 - Allows you to generate commit messages based on the changes tracked by Git
 - Lets you setup your own prompt to customize the commit message
+- Uses GPT-3.5-turbo
 
 ![Alt Text](/images/usage.gif)
 

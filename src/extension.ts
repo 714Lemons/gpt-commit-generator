@@ -41,7 +41,7 @@ function generateDiff(repository: any) {
                 cancellable: true  // Make the progress notification cancellable
             }, (progress, token) => {
                 token.onCancellationRequested(() => {
-                    console.log("User cancelled the long running operation")
+                    console.log("User cancelled the long running operation");
                 });
 
                 if (estimateTokens(changes) > maxTokens) {
