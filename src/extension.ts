@@ -23,39 +23,49 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 function generateDiff(repository: any) {
-	const folderPath = repository.rootUri.fsPath;
-	child_process.exec('git diff --cached', { cwd: folderPath }, (error, stdout, stderr) => {
-		if (error) {
-			console.error(`exec error: ${error}`);
-			vscode.window.showErrorMessage(`Error generating diff: ${error}`);
-			return;
-		}
-		const changes = stdout;
-		console.log(`Changes since last commit:\n${changes}`);
-		if (changes.trim().length === 0) {
-			vscode.window.showInformationMessage('No changes to commit.');
-		} else {
-			vscode.window.withProgress({
-				location: vscode.ProgressLocation.Notification,
-				title: 'Generating commit message...',
-				cancellable: false
-			}, (progress) => {
-				if (estimateTokens(changes) > maxTokens) {
-					vscode.window.showErrorMessage(`Error generating commit message: Too many changes to commit. Please commit manually.`);
-					return Promise.reject('Error generating commit message: Too many changes to commit. Please commit manually.');
-				}
-				return interpretChanges(changes, 1, progress, repository);
-			});
-		}
-	});
+    const folderPath = repository.rootUri.fsPath;
+    child_process.exec('git diff --cached', { cwd: folderPath }, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`exec error: ${error}`);
+            vscode.window.showErrorMessage(`Error generating diff: ${error}`);
+            return;
+        }
+        const changes = stdout;
+        console.log(`Changes since last commit:\n${changes}`);
+        if (changes.trim().length === 0) {
+            vscode.window.showInformationMessage('No changes to commit.');
+        } else {
+            vscode.window.withProgress({
+                location: vscode.ProgressLocation.Notification,
+                title: 'Generating commit message...',
+                cancellable: true  // Make the progress notification cancellable
+            }, (progress, token) => {
+                token.onCancellationRequested(() => {
+                    console.log("User cancelled the long running operation")
+                });
+
+                if (estimateTokens(changes) > maxTokens) {
+                    vscode.window.showErrorMessage(`Error generating commit message: Too many changes to commit. Please commit manually.`);
+                    return Promise.reject('Error generating commit message: Too many changes to commit. Please commit manually.');
+                }
+                return interpretChanges(changes, 1, progress, repository, token);
+            });
+        }
+    });
 }
 
 function estimateTokens(text: string) {
 	return Math.ceil(text.length / 4);
 }
 
-async function interpretChanges(changes: string, attempt: number = 1, progress: vscode.Progress<{ message?: string }>, repository: any) {
-	try {
+async function interpretChanges(changes: string, attempt: number = 1, progress: vscode.Progress<{ message?: string }>, repository: any, token: vscode.CancellationToken) {
+    try {
+        // Check if the operation has been cancelled by the user
+        if (token.isCancellationRequested) {
+            console.log("Operation cancelled by the user.");
+            return;
+        }
+		
 		const { apiKey, text } = await getOpenAIConfiguration();
 		const configuration = new Configuration({ apiKey });
 		const openai = new OpenAIApi(configuration);
