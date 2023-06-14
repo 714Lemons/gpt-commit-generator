@@ -7,3 +7,6 @@
 
 ## [1.0.2]
 - added support for submodules (multiple repos in source control)
+
+## [1.1.0]
+- now uses gpt-3.5-turbo-16k
