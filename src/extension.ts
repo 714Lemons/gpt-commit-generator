@@ -71,7 +71,7 @@ async function interpretChanges(changes: string, attempt: number = 1, progress: 
 		const openai = new OpenAIApi(configuration);
 		console.log(text);
 		const response = await openai.createChatCompletion({
-			model: 'gpt-3.5-turbo',
+			model: 'gpt-3.5-turbo-16k',
 			messages: [
 				{
 					role: 'user',

@@ -2,7 +2,8 @@
 
 - Allows you to generate commit messages based on the changes tracked by Git
 - Lets you setup your own prompt to customize the commit message
-- Uses GPT-3.5-turbo
+- Uses GPT-3.5-turbo-16k
+- Supports submodules/ multiple repositories in one workspace
 
 ![Alt Text](/images/usage.gif)
 
@@ -14,7 +15,7 @@
 - Writes it directly into the git extension commit field
 - Make sure all files you want to commit are tracked by git
 
-To run it, click the Generate Commit button in the source control panel or open the command palette and type in: ```Gernerate Commit```.
+To run it, click the Generate Commit button in the source control panel or open the command palette and type in: ```Generate Commit```.
 
 ## Requirements
 
