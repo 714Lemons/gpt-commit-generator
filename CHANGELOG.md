@@ -21,3 +21,7 @@
 - added interupt function
 - checks if generator is already running
 - minor fixes
+
+## [1.2.1]
+
+- Bug fix
