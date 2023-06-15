@@ -3,14 +3,22 @@ import * as child_process from 'child_process';
 import { Configuration, OpenAIApi } from "openai";
 import { IncomingMessage } from 'http';
 
-const maxTokens = 4000;
+const maxTokens = 14000;
+
+let isRunning = false;
 
 export function activate(context: vscode.ExtensionContext) {
 	let disposable = vscode.commands.registerCommand('gpt-commit-generator.generateCommit', () => {
+		if (isRunning) {
+			vscode.window.showInformationMessage('The commit generator is currently running. Please wait for it to finish.');
+			return;
+		}
+		isRunning = true;
 		const gitExtension = vscode.extensions.getExtension('vscode.git')?.exports;
 		if (!gitExtension) {
 			console.error('Git extension is not available.');
 			vscode.window.showErrorMessage(`Git extension is not available.`);
+			isRunning = false;
 			return;
 		}
 		const repositories = gitExtension.getAPI(1).repositories;
@@ -39,7 +47,7 @@ function generateDiff(repository: any) {
                 location: vscode.ProgressLocation.Notification,
                 title: 'Generating commit message...',
                 cancellable: true  // Make the progress notification cancellable
-            }, (progress, token) => {
+            }, async (progress, token) => {
                 token.onCancellationRequested(() => {
                     console.log("User cancelled the long running operation");
                 });
@@ -48,7 +56,12 @@ function generateDiff(repository: any) {
                     vscode.window.showErrorMessage(`Error generating commit message: Too many changes to commit. Please commit manually.`);
                     return Promise.reject('Error generating commit message: Too many changes to commit. Please commit manually.');
                 }
-                return interpretChanges(changes, 1, progress, repository, token);
+                try {
+                    await interpretChanges(changes, 1, progress, repository, token);
+                    progress.report({ message: 'Commit message generated successfully.' });
+                } catch (error) {
+                    console.error(error);
+                }
             });
         }
     });
@@ -69,7 +82,9 @@ async function interpretChanges(changes: string, attempt: number = 1, progress: 
 		const { apiKey, text } = await getOpenAIConfiguration();
 		const configuration = new Configuration({ apiKey });
 		const openai = new OpenAIApi(configuration);
+
 		console.log(text);
+
 		const response = await openai.createChatCompletion({
 			model: 'gpt-3.5-turbo-16k',
 			messages: [
@@ -80,36 +95,59 @@ async function interpretChanges(changes: string, attempt: number = 1, progress: 
 			],
 			stream: true
 		}, {responseType: 'stream'});
+
 		const stream = response.data as unknown as IncomingMessage;
 		repository.inputBox.value = '';
-		stream.on('data', (chunk: Buffer) => {
-			const payloads = chunk.toString().split("\n\n");
-			for (const payload of payloads) {
-				if (payload.includes('[DONE]')) {return;}
-				if (payload.startsWith("data:")) {
-					const data = JSON.parse(payload.replace("data: ", ""));
-					try {
-						const chunk: undefined | string = data.choices[0].delta?.content;
-						if (chunk) {
+
+		// short pause
+		await new Promise(resolve => setTimeout(resolve, 100));
+		await new Promise<void>((resolve, reject) => {
+			let buffer = '';
+			stream.on('data', (chunk: Buffer) => {
+				if (token.isCancellationRequested) {
+					stream.destroy(); // Stops the stream when cancellation is requested
+					console.log("Operation cancelled by the user.");
+					reject();
+					return;
+				}
+
+				buffer += chunk.toString();
+
+				// Split on "\n\n", but keep the remainder in the buffer
+				const payloads = buffer.split("\n\n");
+				buffer = payloads.pop() || '';
+
+
+				for (const payload of payloads) {
+					if (payload.includes('[DONE]')) {resolve(); return;}
+					if (payload.startsWith("data:")) {
+						const data = JSON.parse(payload.replace("data: ", ""));
+						try {
+							const chunk: undefined | string = data.choices[0].delta?.content;
 							console.log(chunk);
-							repository.inputBox.value += chunk;
+							if (chunk) {
+								//console.log(chunk);
+								repository.inputBox.value += chunk;
+							}
+						} catch (error) {
+							console.log(`Error with JSON.parse and ${payload}.\n${error}`);
 						}
-					} catch (error) {
-						console.log(`Error with JSON.parse and ${payload}.\n${error}`);
 					}
 				}
-			}
-		});
-		stream.on('end', () => {
-			setTimeout(() => {
-				console.log('\nStream done');
-				vscode.window.showInformationMessage('Commit message generated successfully.');
-			}, 10);
-		});
+			});
+			stream.on('end', () => {
+				setTimeout(() => {
+					console.log('\nStream done');
+					vscode.window.showInformationMessage('Commit message generated successfully.');
+					resolve();
+				}, 10);
+			});
 
-		stream.on('error', (err: Error) => {
-			console.log(err);
-			vscode.window.showErrorMessage(`Error interpreting changes: ${err.message}`);
+			stream.on('error', (err: Error) => {
+				console.log(err);
+				vscode.window.showErrorMessage(`Error interpreting changes: ${err.message}`);
+				reject(err);
+			});
 		});
 
 	} catch (error: any) {
