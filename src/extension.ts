@@ -8,64 +8,77 @@ const maxTokens = 14000;
 let isRunning = false;
 
 export function activate(context: vscode.ExtensionContext) {
-	let disposable = vscode.commands.registerCommand('gpt-commit-generator.generateCommit', () => {
+	let disposable = vscode.commands.registerCommand('gpt-commit-generator.generateCommit', async () => {
 		if (isRunning) {
 			vscode.window.showInformationMessage('The commit generator is currently running. Please wait for it to finish.');
 			return;
 		}
 		isRunning = true;
-		const gitExtension = vscode.extensions.getExtension('vscode.git')?.exports;
-		if (!gitExtension) {
-			console.error('Git extension is not available.');
-			vscode.window.showErrorMessage(`Git extension is not available.`);
+		try {
+			const gitExtension = vscode.extensions.getExtension('vscode.git')?.exports;
+			if (!gitExtension) {
+				throw new Error('Git extension is not available.');
+			}
+			const repositories = gitExtension.getAPI(1).repositories;
+			for (let repository of repositories) {
+				await generateDiff(repository);
+			}
+		} catch (err: any) {
+			console.error(err);
+			vscode.window.showErrorMessage(err.message);
+		} finally {
 			isRunning = false;
-			return;
 		}
-		const repositories = gitExtension.getAPI(1).repositories;
-		repositories.forEach((repository: any) => {
-			generateDiff(repository);
-		});
 	});
 
 	context.subscriptions.push(disposable);
 }
 
 function generateDiff(repository: any) {
-    const folderPath = repository.rootUri.fsPath;
-    child_process.exec('git diff --cached', { cwd: folderPath }, (error, stdout, stderr) => {
-        if (error) {
-            console.error(`exec error: ${error}`);
-            vscode.window.showErrorMessage(`Error generating diff: ${error}`);
-            return;
-        }
-        const changes = stdout;
-        console.log(`Changes since last commit:\n${changes}`);
-        if (changes.trim().length === 0) {
-            vscode.window.showInformationMessage('No changes to commit.');
-        } else {
-            vscode.window.withProgress({
-                location: vscode.ProgressLocation.Notification,
-                title: 'Generating commit message...',
-                cancellable: true  // Make the progress notification cancellable
-            }, async (progress, token) => {
-                token.onCancellationRequested(() => {
-                    console.log("User cancelled the long running operation");
-                });
+	return new Promise<void>((resolve, reject) => {
+		const folderPath = repository.rootUri.fsPath;
+		child_process.exec('git diff --cached', { cwd: folderPath }, (error, stdout, stderr) => {
+			if (error) {
+				console.error(`exec error: ${error}`);
+				vscode.window.showErrorMessage(`Error generating diff: ${error}`);
+				reject(error);
+				return;
+			}
+			const changes = stdout;
+			console.log(`Changes since last commit:\n${changes}`);
+			if (changes.trim().length === 0) {
+				vscode.window.showInformationMessage('No changes to commit.');
+				resolve();
+			} else {
+				vscode.window.withProgress({
+					location: vscode.ProgressLocation.Notification,
+					title: 'Generating commit message...',
+					cancellable: true  // Make the progress notification cancellable
+				}, async (progress, token) => {
+					token.onCancellationRequested(() => {
+						console.log("User cancelled the long running operation");
+						reject('Operation cancelled by the user.');
+					});
 
-                if (estimateTokens(changes) > maxTokens) {
-                    vscode.window.showErrorMessage(`Error generating commit message: Too many changes to commit. Please commit manually.`);
-                    return Promise.reject('Error generating commit message: Too many changes to commit. Please commit manually.');
-                }
-                try {
-                    await interpretChanges(changes, 1, progress, repository, token);
-                    progress.report({ message: 'Commit message generated successfully.' });
-                } catch (error) {
-                    console.error(error);
-                }
-            });
-        }
-    });
+					if (estimateTokens(changes) > maxTokens) {
+						vscode.window.showErrorMessage(`Error generating commit message: Too many changes to commit. Please commit manually.`);
+						reject('Error generating commit message: Too many changes to commit. Please commit manually.');
+						return;
+					}
+					try {
+						await interpretChanges(changes, 1, progress, repository, token);
+						progress.report({ message: 'Commit message generated successfully.' });
+						resolve();
+					} catch (error) {
+						console.error(error);
+						reject(error);
+					}
+				});
+			}
+		});
+	});
 }
+
 
 function estimateTokens(text: string) {
 	return Math.ceil(text.length / 4);
