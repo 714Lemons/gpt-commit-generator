@@ -102,6 +102,12 @@ async function interpretChanges(changes: string, attempt: number = 1, progress: 
 			model: 'gpt-3.5-turbo-16k',
 			messages: [
 				{
+					role: 'system',
+					content: 'You are a commit message generator. \
+					You will generate a commit message based on the changes you have made since the last commit. \
+					Keep attention to chnges. They are surrounded by lines that did not change.'
+				},
+				{
 					role: 'user',
 					content: `${text}\n${changes}`
 				}
